@@ -45,7 +45,19 @@ docker run -d \
 git clone https://github.com/Starhes/kityminder.git
 cd kityminder
 
-# 安装服务端依赖
+# 1. 安装前端依赖与构建
+npm install
+npm install -g bower grunt-cli
+bower install
+
+# 手动克隆缺失的依赖 (fui, kity)
+git clone https://github.com/fex-team/kity.git lib/kity
+git clone https://github.com/fex-team/fui.git lib/fui
+
+# 编译 CSS
+grunt less autoprefixer --force
+
+# 2. 安装服务端依赖
 cd server
 npm install
 cd ..
