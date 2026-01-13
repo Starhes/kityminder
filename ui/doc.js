@@ -7,7 +7,7 @@
  * @copyright: Baidu FEX, 2014
  */
 
-KityMinder.registerUI('doc', function(minder) {
+KityMinder.registerUI('doc', function (minder) {
 
     var ret = minder.getUI('eve').setup({});
     var current = { saved: true };
@@ -43,8 +43,8 @@ KityMinder.registerUI('doc', function(minder) {
 
     var locked = false;
 
-    ret.lock = function() { locked = true; };
-    ret.unlock = function() { locked = false; };
+    ret.lock = function () { locked = true; };
+    ret.unlock = function () { locked = false; };
 
     /**
      * 加载文档
@@ -71,7 +71,7 @@ KityMinder.registerUI('doc', function(minder) {
 
         loading = true;
 
-        return minder.importData(doc.content, doc.protocol).then(function(data) {
+        return minder.importData(doc.content, doc.protocol).then(function (data) {
 
             doc.title = doc.title || minder.getMinderTitle();
 
@@ -85,10 +85,10 @@ KityMinder.registerUI('doc', function(minder) {
 
             return doc;
 
-        })['catch'](function(e) {
+        })['catch'](function (e) {
             current = restore;
             notice.error('err_doc_resolve', e);
-        }).then(function(doc) {
+        }).then(function (doc) {
             loading = false;
             if (doc)
                 notice.info(minder.getLang('ui.load_success', doc.title));
@@ -118,11 +118,11 @@ KityMinder.registerUI('doc', function(minder) {
     }
 
     /* 绕开初始化时候的乱事件 */
-    setTimeout(function() {
-        minder.on('contentchange', function() {
+    setTimeout(function () {
+        minder.on('contentchange', function () {
             if (loading) return;
 
-            if (current.source != 'netdisk') {
+            if (current.source != 'netdisk' && current.source != 'postgresql') {
 
                 current.title = minder.getMinderTitle();
                 current.saved = false;
