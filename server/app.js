@@ -52,7 +52,19 @@ const initDb = async () => {
             )
         `);
 
-        // Check if admin user exists, if not create one? No, let standard reg flow handle it or manual db insert.
+        // Check if admin user exists, if not create one
+        try {
+            // Try valid connection
+            const adminCheck = await db.query('SELECT * FROM users WHERE username = $1', ['admin']);
+            if (adminCheck.rows.length === 0) {
+                const adminPass = await bcrypt.hash('admin', 10);
+                await db.query('INSERT INTO users (username, password_hash) VALUES ($1, $2)', ['admin', adminPass]);
+                console.log('Default admin user created (admin/admin)');
+            }
+        } catch (e) {
+            console.log('Error checking/creating admin user', e);
+        }
+
         console.log('Database initialized');
     } catch (err) {
         console.error('Error initializing database:', err);
@@ -144,6 +156,27 @@ app.post('/api/auth/invite', async (req, res) => {
         res.status(500).json({ error: 'Internal error' });
     }
 });
+
+// Change Password
+app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    try {
+        const result = await db.query('SELECT * FROM users WHERE id = $1', [req.user.id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+
+        const user = result.rows[0];
+        const validPassword = await bcrypt.compare(oldPassword, user.password_hash);
+        if (!validPassword) return res.status(400).json({ error: 'Invalid old password' });
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await db.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hashedPassword, req.user.id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal error' });
+    }
+});
+
 
 
 // List maps (User specific)

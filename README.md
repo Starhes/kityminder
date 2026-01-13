@@ -66,6 +66,12 @@ cd ..
 *   `ENABLE_REGISTRATION`: 是否开放注册 (`true`/`false`，默认 false)
 *   `ENABLE_INVITE_ONLY`: 是否仅允许邀请码注册 (`true`/`false`，默认 false)
 
+**默认管理员账号：**
+首次运行会自动创建默认账号：
+*   用户名：`admin`
+*   密码：`admin`
+*   请登录后立即修改密码。
+
 **启动服务：**
 
 ```bash

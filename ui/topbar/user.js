@@ -7,7 +7,7 @@
  * @copyright: Baidu FEX, 2014
  */
 
-KityMinder.registerUI('topbar/user', function(minder) {
+KityMinder.registerUI('topbar/user', function (minder) {
     var eve = minder.getUI('eve');
 
     var currentUser;
@@ -41,15 +41,15 @@ KityMinder.registerUI('topbar/user', function(minder) {
 
     var menu = $userMenu.getMenuWidget().show();
 
-    ['userinfo', 'gotonetdisk', 'fui-spliter', 'switchuser', 'logout'].forEach(function(name) {
+    ['userinfo', 'gotonetdisk', 'fui-spliter', 'changepw', 'switchuser', 'logout'].forEach(function (name) {
         menu.appendItem(new FUI.Item({
-            label: minder.getLang('ui.' + name),
+            label: minder.getLang('ui.' + name) || (name === 'changepw' ? 'Change Password' : name),
             className: name,
             value: name
         }));
     });
 
-    $userButton.on('click', function() {
+    $userButton.on('click', function () {
         $userMenu.open();
         var $dom = $($userMenu.getElement());
         var $button = $($userButton.getElement());
@@ -59,7 +59,7 @@ KityMinder.registerUI('topbar/user', function(minder) {
         });
     });
 
-    menu.on('select', function(e, info) {
+    menu.on('select', function (e, info) {
 
         switch (info.value) {
             case 'userinfo':
@@ -67,6 +67,9 @@ KityMinder.registerUI('topbar/user', function(minder) {
                 break;
             case 'gotonetdisk':
                 window.open('http://pan.baidu.com/disk/home#path=/apps/kityminder');
+                break;
+            case 'changepw':
+                changePassword();
                 break;
             case 'switchuser':
                 switchUser();
@@ -81,8 +84,8 @@ KityMinder.registerUI('topbar/user', function(minder) {
 
     });
 
-    minder.on('uiready', function() {
-        fio.user.check().then(check)['catch'](function(error) {
+    minder.on('uiready', function () {
+        fio.user.check().then(check)['catch'](function (error) {
             $loginButton.show();
             $userButton.hide();
             $tip.hide();
@@ -136,19 +139,44 @@ KityMinder.registerUI('topbar/user', function(minder) {
         var $login_tip = $('<p class="login-tip"></p>')
             .html(minder.getLang('ui.requirelogin'));
         $element.append($login_tip);
-        fio.user.on('login', function() {
+        fio.user.on('login', function () {
             $element.removeClass('login-required');
         });
-        fio.user.on('logout', function() {
+        fio.user.on('logout', function () {
             $element.addClass('login-required');
         });
     }
 
+    function changePassword() {
+        var oldPw = prompt("Enter old password:");
+        if (!oldPw) return;
+        var newPw = prompt("Enter new password:");
+        if (!newPw) return;
+        var confirmPw = prompt("Confirm new password:");
+        if (newPw !== confirmPw) {
+            alert("Passwords do not match!");
+            return;
+        }
+
+        $.ajax({
+            url: '/api/auth/change-password',
+            method: 'POST',
+            contentType: 'application/json',
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('km_token') },
+            data: JSON.stringify({ oldPassword: oldPw, newPassword: newPw })
+        }).then(function () {
+            alert("Password changed successfully.");
+        }).fail(function (xhr) {
+            var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : "Failed to change password";
+            alert(msg);
+        });
+    }
+
     return {
-        getCurrent: function() {
+        getCurrent: function () {
             return currentUser;
         },
-        loginLink: function() {
+        loginLink: function () {
             return $('<a></a>').click(login);
         },
         requireLogin: requireLogin
