@@ -1,81 +1,97 @@
-Kity Minder
-==========
+# KityMinder - 私有化部署版
 
-## 简介
+> 本项目基于 [KityMinder](https://github.com/fex-team/kityminder) 二次开发，增加了 PostgreSQL 数据库存储、用户鉴权系统以及 Docker 容器化支持。
 
-KityMinder 是百度 FEX 团队的 f-cube 小组（原 UEditor 小组）的又一力作。作为一款在线的脑图编辑工具，它有着不亚于 native 脑图工具的交互体验。同时，它充分发挥了 Web 云存储的优势，可以直接将编辑中的脑图同步到云端。此外，借由独创的 “云盘分享”功能，用户可以一键将当前编辑的脑图直接生成在线链接共享给其他用户，实现无缝沟通。
+## 主要特性
 
-![KityMinder](snap.png "KityMinder 界面")
+*   **数据持久化**：使用 PostgreSQL 替代原有的本地存储/百度网盘，支持私有化部署。
+*   **用户系统**：
+    *   支持用户名/密码注册与登录。
+    *   **数据隔离**：每个用户仅能访问自己的脑图文件。
+    *   **邀请机制**：支持开启“仅邀请注册”模式。
+*   **Docker 支持**：提供 Dockerfile 及 GitHub Actions 自动构建流程，支持多架构（amd64/arm64）。
 
-KityMinder 基于 SVG 技术实现，支持绝大多数的主流浏览器，包括：
+## 快速开始 (Docker)
 
-1. Chrome
-2. Firefox
-3. Safari
-4. Internet Explorer 10 或以上
-
-## 线上版本
-
-产品地址：[http://naotu.baidu.com](http://naotu.baidu.com)
-
-## 二次开发
-
-> 不建议直接使用百度脑图仓库进行二次开发。
->
-> 需要脑图可视化需求的，可以基于 [kityminder-core](https://github.com/fex-team/kityminder-core) 进行二次开发；
-> 需要脑图编辑需求的，可以使用 [kityminder-editor](https://github.com/fex-team/kityminder-editor) 进行二次开发。
-
-### 依赖
-
-百度脑图依赖列表如下。
-
-* `lib/bower/codemirror` - 备注窗口使用的代码编辑器
-* `lib/fio` - 前端 IO 操作中间件
-* `lib/fui` - 基础 UI 组件库
-* `lib/kity` - 前端 SVG 库
-* `lib/marked` - Markdown 渲染支持
+推荐使用 Docker 进行部署。
 
 ```bash
-git clone https://github.com/fex-team/kityminder.git
+# 拉取镜像 (请替换为您构建的镜像地址，或本地构建)
+docker pull ghcr.io/starhes/kityminder:latest
+
+# 运行 (需要先准备好 PostgreSQL 数据库)
+docker run -d \
+  -p 3000:3000 \
+  -e DB_HOST=host.docker.internal \
+  -e DB_USER=postgres \
+  -e DB_PASSWORD=your_password \
+  -e DB_NAME=kityminder \
+  -e ENABLE_REGISTRATION=true \
+  --name kityminder \
+  ghcr.io/starhes/kityminder:latest
 ```
 
-### 安装
+## 本地开发与运行
 
-要在本地运行百度脑图，需要先安装一下开发工具：[git](http://git-scm.com)、[node](http://nodejs.org/)、[bower](http://bower.io/)
+### 1. 环境准备
 
-建议 `fork` 本仓库后进行二次开发。`fork` 操作完成后，会在您的 github 账户下创建一个 kityminder 的副本。接下来可以克隆到本地。
+*   Node.js (v14+)
+*   PostgreSQL 数据库
 
-```bash
-cd {YOUR_WORKING_DIRECTORY}
-git clone https://github.com/{YOUR_GITHUB_USERNAME}/kityminder.git
-```
-
-代码克隆完成，需要初始化子模块。
+### 2. 初始化
 
 ```bash
-git submodule init
-git submodule update
-```
+# 克隆仓库
+git clone https://github.com/Starhes/kityminder.git
+cd kityminder
 
-然后安装项目的依赖项。
-
-```bash
+# 安装服务端依赖
+cd server
 npm install
-bower install
+cd ..
 ```
 
-### 构建
+### 3. 配置与运行
 
-依赖安装完成，使用 `grunt` 进行构建：
+确保 PostgreSQL 数据库已启动。该项目会自动在数据库中创建所需的 `users`, `maps`, `invites` 表。
+
+你可以在 `server/db.js` 中修改数据库配置，或者使用环境变量：
+
+*   `DB_HOST`: 数据库地址 (默认 localhost)
+*   `DB_PORT`: 端口 (默认 5432)
+*   `DB_USER`: 用户名 (默认 postgres)
+*   `DB_PASSWORD`: 密码 (默认 password)
+*   `DB_NAME`: 数据库名 (默认 kityminder)
+*   `JWT_SECRET`: JWT 签名密钥 (生产环境请务必修改)
+*   `ENABLE_REGISTRATION`: 是否开放注册 (`true`/`false`，默认 false)
+*   `ENABLE_INVITE_ONLY`: 是否仅允许邀请码注册 (`true`/`false`，默认 false)
+
+**启动服务：**
 
 ```bash
-grunt
+# 开启注册功能启动（首次运行建议开启）
+# Linux/Mac
+export ENABLE_REGISTRATION=true
+node server/app.js
+
+# Windows PowerShell
+$env:ENABLE_REGISTRATION="true"
+node server/app.js
 ```
 
-运行完成后，会发现生成了 `dist` 目录，里面就是可运行的 kityminder。
+访问浏览器：[http://localhost:3000](http://localhost:3000)
 
-## 联系我们
+## API 说明
 
-问题和建议反馈：[Github Issues](https://github.com/fex-team/kityminder/issues/new)
-邮件组: kity@baidu.com
-QQ 讨论群: 374918234
+*   `POST /api/auth/login`: 登录
+*   `POST /api/auth/register`: 注册
+*   `POST /api/auth/invite`: 生成邀请码 (简易实现)
+*   `GET /api/maps`: 获取当前用户的脑图列表
+*   `GET /api/maps/:id`: 获取指定脑图详情
+*   `POST /api/maps`: 创建或更新脑图
+*   `DELETE /api/maps/:id`: 删除脑图
+
+## 版权说明
+
+本项目原始代码版权归 [Baidu FEX](http://fex.baidu.com) 所有。
+二次开发部分遵循 MIT 协议。

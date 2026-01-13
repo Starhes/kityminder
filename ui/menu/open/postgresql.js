@@ -26,7 +26,10 @@ KityMinder.registerUI('menu/open/postgresql', function (minder) {
 
     function loadMaps() {
         $mapList.html('<div style="padding:5px;">Loading...</div>');
-        $.get('/api/maps').then(function (maps) {
+        $.ajax({
+            url: '/api/maps',
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('km_token') }
+        }).then(function (maps) {
             $mapList.empty();
             if (maps.length === 0) {
                 $mapList.append('<div style="padding:5px;">No saved maps found.</div>');
@@ -48,7 +51,8 @@ KityMinder.registerUI('menu/open/postgresql', function (minder) {
                         if (confirm('Are you sure you want to delete "' + map.title + '"?')) {
                             $.ajax({
                                 url: '/api/maps/' + map.id,
-                                method: 'DELETE'
+                                method: 'DELETE',
+                                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('km_token') }
                             }).then(function () {
                                 notice.info('Deleted successfully');
                                 loadMaps();
@@ -64,7 +68,10 @@ KityMinder.registerUI('menu/open/postgresql', function (minder) {
                         $menu.hide();
                         $(minder.getRenderTarget()).addClass('loading');
 
-                        $.get('/api/maps/' + map.id).then(function (res) {
+                        $.ajax({
+                            url: '/api/maps/' + map.id,
+                            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('km_token') }
+                        }).then(function (res) {
                             var doc = {
                                 protocol: 'json',
                                 content: res.content,
@@ -85,8 +92,12 @@ KityMinder.registerUI('menu/open/postgresql', function (minder) {
                     $mapList.append($item);
                 });
             }
-        }).fail(function () {
-            $mapList.html('<div style="color: red; padding:5px;">Failed to load maps. Ensure server is running.</div>');
+        }).fail(function (xhr) {
+            if (xhr.status === 401 || xhr.status === 403) {
+                window.location.href = 'login.html';
+            } else {
+                $mapList.html('<div style="color: red; padding:5px;">Failed to load maps. Ensure server is running.</div>');
+            }
         });
     }
 

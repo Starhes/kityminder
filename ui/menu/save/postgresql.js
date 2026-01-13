@@ -32,7 +32,10 @@ KityMinder.registerUI('menu/save/postgresql', function (minder) {
 
     function loadMaps() {
         $mapList.html('<div style="padding:5px;">Loading...</div>');
-        $.get('/api/maps').then(function (maps) {
+        $.ajax({
+            url: '/api/maps',
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('km_token') }
+        }).then(function (maps) {
             $mapList.empty();
             if (maps.length === 0) {
                 $mapList.append('<div style="padding:5px;">No saved maps found.</div>');
@@ -55,8 +58,12 @@ KityMinder.registerUI('menu/save/postgresql', function (minder) {
                     $mapList.append($item);
                 });
             }
-        }).fail(function () {
-            $mapList.html('<div style="color: red; padding:5px;">Failed to load maps. Ensure server is running.</div>');
+        }).fail(function (xhr) {
+            if (xhr.status === 401 || xhr.status === 403) {
+                window.location.href = 'login.html';
+            } else {
+                $mapList.html('<div style="color: red; padding:5px;">Failed to load maps. Ensure server is running.</div>');
+            }
         });
     }
 
@@ -106,6 +113,7 @@ KityMinder.registerUI('menu/save/postgresql', function (minder) {
             url: '/api/maps',
             method: 'POST',
             contentType: 'application/json',
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('km_token') },
             data: JSON.stringify(payload)
         }).then(function (res) {
             notice.info('Saved successfully');

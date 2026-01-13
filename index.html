@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <meta name="title" content="百度脑图（KityMinder） - 控制创意，如此简单">
@@ -7,12 +8,12 @@
     <meta name="description" content="百度脑图，便捷的脑图编辑工具 - 控制创意，如此简单。让您在线上直接创建、保存并分享你的思路。免安装 云存储 易分享 体验舒适 功能丰富">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <title>百度脑图 - 便捷的思维编辑工具</title>
-    
+
     <script src="import.js?pack=index"></script>
 
     <script>
 
-        $(function() {
+        $(function () {
 
             var pattern = /(?:shareId|share_id)=(\w+)([&#]|$)/;
             var match = pattern.exec(window.location) || pattern.exec(document.referrer);
@@ -22,17 +23,12 @@
                 return;
             }
 
-            /* 初始化网盘使用的 APP 身份 */
-            fio.user.init({
-                apiKey: 'wiE55BGOG8BkGnpPs6UNtPbb'
-            });
-
             var $a = $('p.login a').hide();
 
             function loadingAnimate(on) {
                 if (on) {
                     $('hr').addClass('loading');
-                    loadingAnimate.timer = setTimeout(function() {
+                    loadingAnimate.timer = setTimeout(function () {
                         $('hr').addClass('animated');
                     }, 660);
                 } else {
@@ -43,29 +39,23 @@
 
             loadingAnimate(true);
 
-            fio.user.check().then(function(user) {
-                if (user) {
-                    window.location.href = 'edit.html';
-                }
-                else {
-                    $a.fadeIn(800);
-                    loadingAnimate(false);
-                }
-            });
-            
-            $('p.login a').click(function() {
-                var urlparts = window.location.href.split('/');
-                urlparts.pop();
-                urlparts = urlparts.join('/');
-                fio.user.login({
-                    redirectUrl: urlparts + '/edit.html',
-                    remember: 7 * 24 * 60 * 60
-                });
-                loadingAnimate(true);
+            // Check for JWT token
+            var token = localStorage.getItem('km_token');
+            if (token) {
+                // Validate token? For now just assume valid and redirect. 
+                // Ideally verify with backend, but 401 on API call will handle expiration.
+                window.location.href = 'edit.html';
+            } else {
+                $a.fadeIn(800);
+                loadingAnimate(false);
+            }
+
+            $('p.login a').click(function () {
+                window.location.href = 'login.html';
             });
 
             function preload(url) {
-                return new Promise(function(resolve, reject) {
+                return new Promise(function (resolve, reject) {
                     var img = new Image();
                     img.onload = resolve;
                     img.onerror = reject;
@@ -73,7 +63,7 @@
                 });
             }
 
-            preload('ui/theme/default/images/indexbackground.jpg').then(function() {
+            preload('ui/theme/default/images/indexbackground.jpg').then(function () {
                 $('div.background').addClass('loaded');
             });
         });
@@ -84,7 +74,8 @@
     <link href="favicon.ico" type="image/x-icon" rel="apple-touch-icon-precomposed">
 
     <style>
-        body, html {
+        body,
+        html {
             margin: 0;
             padding: 0;
             overflow: hidden;
@@ -103,14 +94,17 @@
             background: #FFEFEF;
             color: #4A4F5D;
         }
+
         ::-moz-selection {
             background: #FFEFEF;
             color: #4A4F5D;
         }
+
         ::-ms-selection {
             background: #FFEFEF;
             color: #4A4F5D;
         }
+
         ::selection {
             background: #FFEFEF;
             color: #4A4F5D;
@@ -153,9 +147,10 @@
             z-index: -1;
         }
 
-        h1, p {
+        h1,
+        p {
             font-weight: 100;
-            font-family: Arial, "Microsoft Yahei", "Heiti SC",  sans-serif;
+            font-family: Arial, "Microsoft Yahei", "Heiti SC", sans-serif;
             text-align: center;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
@@ -203,24 +198,26 @@
         }
 
         @-webkit-keyframes slide {
-            0% { 
+            0% {
                 -webkit-transform: translate3d(100px, 0, 0);
-                transform: translate3d(100px, 0, 0); 
+                transform: translate3d(100px, 0, 0);
             }
-            100% { 
+
+            100% {
                 -webkit-transform: translate3d(-100px, 0, 0);
-                transform: translate3d(-100px, 0, 0); 
+                transform: translate3d(-100px, 0, 0);
             }
         }
 
         @keyframes slide {
-            0% { 
+            0% {
                 -webkit-transform: translate3d(100px, 0, 0);
-                transform: translate3d(100px, 0, 0); 
+                transform: translate3d(100px, 0, 0);
             }
-            100% { 
+
+            100% {
                 -webkit-transform: translate3d(-100px, 0, 0);
-                transform: translate3d(-100px, 0, 0); 
+                transform: translate3d(-100px, 0, 0);
             }
         }
 
@@ -277,16 +274,16 @@
             transform: scale(1, 1);
             -webkit-transform: scale(1, 1);
         }
-    
     </style>
 </head>
+
 <body>
     <div class="background"></div>
-    <h1>百度脑图 <br/> <span>控制创意，如此简单</span></h1>
-    <hr /> 
+    <h1>百度脑图 <br /> <span>控制创意，如此简单</span></h1>
+    <hr />
     <p class="description">
-        免安装 云存储 易分享<br/>
-        舒适的体验 丰富的功能<br/>
+        免安装 云存储 易分享<br />
+        舒适的体验 丰富的功能<br />
     </p>
     <p class="login">
         <a>马上开启</a>
@@ -296,9 +293,10 @@
 
 <!--Baidu Tongji Code-->
 <script type="text/javascript">
-if (document.domain == 'naotu.baidu.com') {
-    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
-    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F0703917f224067c887f3664479a03887' type='text/javascript'%3E%3C/script%3E"));
-}
+    if (document.domain == 'naotu.baidu.com') {
+        var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+        document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F0703917f224067c887f3664479a03887' type='text/javascript'%3E%3C/script%3E"));
+    }
 </script>
+
 </html>
